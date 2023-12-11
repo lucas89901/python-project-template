@@ -1,0 +1,52 @@
+name: Pre-commit autoupdate
+
+on:
+  schedule:
+    - cron: '0 0 * * 1'  # Every Monday at 00:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  pre-commit-autoupdate:
+    name: Pre-commit autoupdate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+      - name: Install pre-commit
+        run: pip install pre-commit
+      - name: Run pre-commit autoupdate
+        id: run-pre-commit-autoupdate
+        run: |
+          {
+            echo "log<<END"
+            pre-commit autoupdate
+            echo "END"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Create pull request
+        id: create-pull-request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          base: main
+          body: |
+            `pre-commit autoupdate` command output:
+            ```
+            ${{ steps.run-pre-commit-autoupdate.outputs.log }}
+            ```
+          branch: pre-commit-autoupdate
+          commit-message: "pre-commit: Autoupdate"
+          committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+          delete-branch: true
+          title: "pre-commit: Autoupdate"
+      - name: Log pull request URL
+        if: "${{ steps.create-pull-request.outputs.pull-request-url }}"
+        run: |
+          echo "Pull request URL: ${{ steps.create-pull-request.outputs.pull-request-url }}" >> "${GITHUB_STEP_SUMMARY}"

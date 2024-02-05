@@ -44,6 +44,7 @@ jobs:
           branch: pre-commit-autoupdate
           commit-message: "pre-commit: Autoupdate"
           delete-branch: true
+          labels: pre-commit
           title: "pre-commit: Autoupdate"
       - name: Log pull request URL
         if: "${{ steps.create-pull-request.outputs.pull-request-url }}"
